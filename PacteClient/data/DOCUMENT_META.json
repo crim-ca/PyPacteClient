@@ -1,0 +1,131 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "targetType": "document",
+    "schemaType": "DOCUMENT_META",
+    "title": "DOCUMENT_META",
+    "type": "object",
+    "required": [
+        "schemaType",
+        "_corpusID",
+        "_documentID"
+    ],
+    "properties": {
+        "schemaType": {
+            "type": "string",
+            "description": "Constant: 'DOCUMENT_META'",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "default": "DOCUMENT_META",
+            "locked": true
+        },
+        "_documentID": {
+            "type": "string",
+            "description": "Internal document GUID",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        },
+        "_corpusID": {
+            "type": "string",
+            "description": "Internal Corpus GUID",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        },
+        "indexedLanguage": {
+            "type": "string",
+            "description": "primary language used in document (Elastic Search language name)",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": false
+        },
+        "detectedLanguage": {
+            "type": "string",
+            "description": "detected language of document",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": false
+        },
+        "detectedLanguageProb": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "detected language probability of document",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": false
+        },
+        "file_name": {
+            "type": "string",
+            "description": "Name of the orignal document file (with extension)",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        },
+        "file_path": {
+            "type": "string",
+            "description": "Path of the document file within the source archive or directory",
+            "searchable": true,
+            "searchModes": ["path"],
+            "locked": true
+        },
+        "file_encoding": {
+            "type": "string",
+            "description": "Encoding of the source file (optional)",
+            "searchable": true,
+            "searchModes": ["basic"],
+            "locked": true
+        },
+        "file_type": {
+            "type": "string",
+            "description": "Source file MIME type (ex: text/plain; charset=UTF-8)",
+            "searchable": true,
+            "searchModes": ["basic"],
+            "locked": true
+        },
+        "file_creation_date": {
+            "type": "string",
+            "description": "Creation date of the document file",
+            "searchable": true,
+            "searchModes": ["basic"],
+            "locked": true
+        },
+        "file_edit_date": {
+            "type": "string",
+            "description": "Edit date of the document file",
+            "searchable": true,
+            "searchModes": ["basic"],
+            "locked": true
+        },
+        "document_size": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Size of the extracted text of the document file",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        },
+        "file_size": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Size of the document file",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        },
+        "file_extension": {
+            "type": "string",
+            "description": "Extension of the document file",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        },
+        "source": {
+            "type": "string",
+            "description": "Name of source archive",
+            "searchable": true,
+            "searchModes": ["basic"],
+            "locked": true
+        }
+    }
+}
