@@ -4,7 +4,6 @@ import uuid
 
 # --- Project Libraries --------------------------------------------------------
 from PacteClient.Admin import Admin
-from PacteUtil.Credential import Credential
 from PacteUtil.QuickConfig import QuickConfig
 
 

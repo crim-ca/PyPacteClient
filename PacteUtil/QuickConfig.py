@@ -208,7 +208,7 @@ class QuickConfig:
 
         return  resp
 
-    def deleteRequest(self, tsTargetEndpoint, toUsertype, toParams):
+    def deleteRequest(self, tsTargetEndpoint, toUsertype, toParams=None):
 
         try:
             validators.url(tsTargetEndpoint)

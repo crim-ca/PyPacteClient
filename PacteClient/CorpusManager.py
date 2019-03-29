@@ -2,14 +2,15 @@
 from collections import defaultdict
 from pathlib import Path
 import json
+import sys
 import os
 
 # --- Project Libraries --------------------------------------------------------
 from PacteUtil.Credential import Credential
 from PacteUtil.QuickConfig import UserType
+from PacteClient.PacteDocument import PacteDocument
 
-
-class Corpus:
+class CorpusManager:
     CORPUS_STRUCT_FILE = "CorpusStructure.json"
     DOCMETA = "DOCUMENT_META.json"
     DOCMETASchema = "DOCUMENT_META.schema"
@@ -31,7 +32,7 @@ class Corpus:
                  addAllPermissionsOnTranscoderBucketToOwner=True, reference="",
                  languages=langList)
 
-        resp = self.config.postRequest(self.config.baseURLPacteBE + "Corpora/corpus/",
+        resp = self.config.postRequest(self.config.baseURLPacteBE + "Corpora/corpus",
                                        UserType.CustomUser, j)
 
         if resp.json().get("id"):
@@ -42,6 +43,97 @@ class Corpus:
             print("Cannot create corpus : {}".format(resp.json().get("message")))
 
         return idCorpus
+
+    def deleteCorpus(self, corpusId):
+        if corpusId is None or len(corpusId) == 0:
+             return False
+
+        resp = self.config.deleteRequest(self.config.baseURLPacteBE + "Corpora/corpus/" + corpusId,
+                                         UserType.CustomUser)
+        if resp and len(resp.text) == 0:
+            return True
+
+        return False
+
+    def getSize(self, corpusId):
+        #  String lsResponse = null;
+    #         lsResponse = poCfg.getRequest(poCfg.getPacteBackend() + "Corpora/corpus/" + tsCorpusId, USERTYPE.CustomUser,
+    #                 null);
+    #
+    #         if (lsResponse != null && !lsResponse.isEmpty()) {
+    #             JSONObject loJson = new JSONObject(lsResponse);
+    #             if (loJson.has("documentCount"))
+    #                 return loJson.getInt("documentCount");
+    #             else
+    #                 System.err.println("No document count returned : " + lsResponse);
+    #         }
+    #
+    #         return null;
+        resp = self.config.getRequest(self.config.baseURLPacteBE + "Corpora/corpus/" + corpusId,
+                                      UserType.CustomUser)
+
+        if resp and len(resp.text) > 0:
+            j = resp.json()
+            if "documentCount" in j:
+                return j["documentCount"]
+            else:
+                print("No document count returned : " + resp.text)
+
+        return None
+
+    def createTagset(self, tagSetDefinition):
+        j = dict(tagsetJsonContent=tagSetDefinition)
+        resp = self.config.postRequest(self.config.baseURLPacteBE + "Tagsets/tagset", UserType.CustomUser, j)
+        if resp and resp.json().get("id", None):
+            return resp.json().get("id")
+        return None
+
+    def deleteTagset(self, tagsetId):
+        if tagsetId is None or len(tagsetId) == 0:
+            return False
+
+        resp = self.config.deleteRequest(self.config.baseURLPacteBE + "Tagsets/tagset/" + tagsetId,
+                                         UserType.CustomUser)
+        if resp and len (resp.text) == 0:
+            return True
+
+        return False
+
+    def getTagset(self, tagsetId):
+
+        resp = self.config.getRequest(self.config.baseURLPacteBE + "Tagsets/tagset/" + tagsetId,
+                                      UserType.CustomUser)
+        if resp and len(resp.text) > 0:
+            return resp.json()
+
+        return None
+
+    def getTagsetId(self, tagsetName):
+        # String lsTagsetList = null;
+    #         JSONArray loTagsets = null;
+    #
+    #         // Aller chercher tous les schémas
+    #         lsTagsetList = poCfg.getRequest(poCfg.getPacteBackend() + "Tagsets/tagsets", USERTYPE.CustomUser, null);
+    #         loTagsets = new JSONArray(lsTagsetList);
+    #
+    #         for (int lniCpt = 0; lniCpt < loTagsets.length(); lniCpt++) {
+    #             JSONObject loObj = loTagsets.getJSONObject(lniCpt);
+    #
+    #             if (new JSONObject(loObj.getString("tagsetJsonContent")).getString("title").equalsIgnoreCase(tsTagsetName))
+    #                 return loObj.getString("id");
+    #         }
+    #
+    #         return null;
+    #     }
+        resp = self.config.getRequest(self.config.baseURLPacteBE +  "Tagsets/tagsets", UserType.CustomUser)
+        if resp :
+            tagset_list = resp.json()
+
+            for tagset in tagset_list :
+                if tagset.get("tagsetJsonContent", dict()).get("title", "").lower() == tagsetName.lower():
+                    return tagset["id"]
+
+        return None
 
     def getGroupId(self, bucketName, corpusId):
 
@@ -82,6 +174,12 @@ class Corpus:
             return resp.json()
 
         return None
+
+    def deleteSchema(self, schemaId):
+        self.config.deleteRequest(self.config.baseURLPacteBE + "Schemas/schema/" + schemaId,
+                                  UserType.CustomUser   )
+
+        return True
 
 
     def createBucket(self, corpusId, bucketName):
@@ -148,7 +246,7 @@ class Corpus:
                                        UserType.CustomUser, j)
 
         if resp:
-            return resp.json.get("id", None)
+            return resp.json().get("id", None)
         else:
             print(resp)
 
@@ -174,6 +272,58 @@ class Corpus:
 
         return self.config.getRequest(self.config.baseURLPacteBE + "Corpora/corpus/" + corpusId, UserType.CustomUser)
 
+    def getCorpusId(self, corpusName):
+        resp = self.config.getRequest(self.config.baseURLPacteBE + "Corpora/corpora", UserType.CustomUser)
+        if resp and len(resp.text) > 0:
+            corpora_list = resp.json()
+            for corpus in corpora_list:
+                if corpus.get("title", None) and corpus.get("title").lower() == corpusName.lower():
+                    return corpus.get("id")
+
+        return None
+
+    def getDocument(self, corpusId, documentId):
+
+        resp = self.config.getRequest(self.config.baseURLPacteBE + "RACSProxy/corpora/" + corpusId
+                                      + "/documents/" + documentId, UserType.CustomUser)
+
+        if resp and len(resp.text) > 0 :
+            j = resp.json()
+
+            return PacteDocument(documentId, j["title"], j["text"], j["source"], j["language"])
+
+        return None
+
+    def getDocuments(self, corpusId):
+        if corpusId is None or len(corpusId.strip()) == 0:
+            return None
+        docs = []
+        nbPages = 0
+        params = dict(entriesperpage=2)
+        maxDocs = sys.maxsize
+        while len(docs) < maxDocs:
+            nbPages += 1
+            params["page"] = nbPages
+            resp = self.config.getRequest(self.config.baseURLPacteBE + "Corpora/documentsCorpus/" + corpusId,
+                                   UserType.CustomUser, toParams=params)
+            if resp is None or len(resp.json()["documents"]) == 0:
+                return docs
+            j = resp.json()
+            maxDocs = j["documentCount"]
+            new_docs = j["documents"]
+            for doc in new_docs:
+                docs.append(PacteDocument(doc["id"], doc["title"], None, None, doc["language"], doc["docByteSize"],
+                            doc["dateAdded"], doc["path"]))
+        return docs
+
+    def getAnnotations(self, corpusId, docId, schemaTypes):
+        params = dict(schemaTypes=schemaTypes)
+        return self.config.getRequest(self.config.baseURLPacteBE +  "RACSProxy/annosearch/corpora/" +
+                                      corpusId + "/documents/" + docId, UserType.CustomUser, toParams=params).json()
+
+    def copyAnnotationGroup(self, corpusId, groupFromId, groupToId):
+        return False
+
     def importCorpus(self, corpus_dir):
 
         groups_dict = dict()
@@ -182,7 +332,7 @@ class Corpus:
         if not corpus_dir_path.exists():
             return None
         try:
-            with corpus_dir_path.joinpath(Corpus.CORPUSMETA).open("r") as corpus_meta_file:
+            with corpus_dir_path.joinpath(CorpusManager.CORPUSMETA).open("r") as corpus_meta_file:
                 corpus_meta = json.load(corpus_meta_file)
         except IOError:
             print("Missing corpus metadata")
@@ -194,7 +344,7 @@ class Corpus:
         # TODO: timeout ?
 
         try:
-            with corpus_dir_path.joinpath(Corpus.CORPUS_STRUCT_FILE).open(
+            with corpus_dir_path.joinpath(CorpusManager.CORPUS_STRUCT_FILE).open(
                     "r") as corpus_meta_file:
                 corpus_struct = json.load(corpus_meta_file)
         except IOError:
@@ -220,9 +370,9 @@ class Corpus:
                 if schema_file_path.exists():
                     with schema_file_path.open("r") as schema_file:
                         schema_j = json.load(schema_file)["schema"]["schemaJsonContent"]
-                elif schema_file_path.name.lower() == Corpus.DOCMETASchema.lower():
+                elif schema_file_path.name.lower() == CorpusManager.DOCMETASchema.lower():
                     try:
-                        with Path(__file__).joinpath("data").joinpath(Corpus.DOCMETASchema).open("r") as docmeta_file:
+                        with Path(__file__).parent.joinpath("data").joinpath(CorpusManager.DOCMETA).open("r") as docmeta_file:
                             schema_j = json.load(docmeta_file)
                     except IOError as e:
                         print(e)
@@ -299,7 +449,7 @@ class Corpus:
 
         if resp:
             j = resp.json()
-            with outputPath.joinpath(Corpus.CORPUS_STRUCT_FILE).open("w") as struct_file:
+            with outputPath.joinpath(CorpusManager.CORPUS_STRUCT_FILE).open("w") as struct_file:
                 json.dump(j, struct_file, indent=4)
 
             for b in j.get("buckets", None):
@@ -318,7 +468,31 @@ class Corpus:
 
 
             # Check if all required groups are in the structure, if not, exit.
+            if exportGroupIdList :
+                for groupId in exportGroupIdList:
+                    if groupId not in buckets:
+                        print("Missing group: " + groupId)
+                        return False
 
+            # List documents and download them
+            docList = self.getDocuments(corpusId)
+            for doc in docList:
+                resp = self.config.getRequest(self.config.baseURLPacteBE + "RACSProxy/corpora/" + corpusId +
+                                              "/documents/" + doc.id, UserType.CustomUser )
+                with docFolderPath.joinpath(doc.id).with_suffix(".json").open("w") as doc_file:
+                    json.dump(resp.json(), doc_file)
+                for groupId, schemas in buckets.items():
+                    if len(schemas) > 0:
+                        annotationList = self.getAnnotations(corpusId, doc.id, dict(groupId=schemas))
+                        with groupFolderPath.joinpath("groupId").with_suffix(".json").open("w") as group_file:
+                            json.dump(annotationList, group_file)
+
+            return True
+
+        return False
+
+if __name__ == "__main__":
+    print(Path(__file__).parent.joinpath("data").joinpath(CorpusManager.DOCMETASchema))
 
 
 
