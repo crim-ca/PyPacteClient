@@ -10,16 +10,16 @@ import validators
 # --- Project Libraries --------------------------------------------------------
 from PacteUtil.Credential import Credential
 
+
 class UserType(enum.Enum):
     PSCAdmin = 1
     PacteAdmin = 2
     CustomUser = 3
 
+
 class QuickConfig:
-
-
     # httpClient = requests.session()
-    config_file_path= ""
+    config_file_path = "config.properties"
 
     @staticmethod
     def readConfiguration(config_file_path, config="STAGING"):
@@ -59,9 +59,9 @@ class QuickConfig:
 
     # New configuration with admin and user level credentials
     @classmethod
-    def configForAdminAndUser (cls, tsBasePacteUrl, tsAdminPSCUsername, tsAdminPSCPassword,
-            tsAdminPacteUsername, tsAdminPactePassword, tsCustomUser, tsCustomPassword,
-            tbVerbose, tniTokenRenewDelay, tsServiceUrl):
+    def configForAdminAndUser(cls, tsBasePacteUrl, tsAdminPSCUsername, tsAdminPSCPassword,
+                              tsAdminPacteUsername, tsAdminPactePassword, tsCustomUser, tsCustomPassword,
+                              tbVerbose, tniTokenRenewDelay, tsServiceUrl):
         if not tsBasePacteUrl or len(tsBasePacteUrl) == 0:
             raise ValueError("PACTE url should not be null")
 
@@ -75,8 +75,8 @@ class QuickConfig:
 
     # New configuration with user level credentials
     @classmethod
-    def configForUser (cls, tsBasePacteUrl, tsCustomUser, tsCustomPassword,
-                       tbVerbose=False, tniTokenRenewDelay=1):
+    def configForUser(cls, tsBasePacteUrl, tsCustomUser, tsCustomPassword,
+                      tbVerbose=False, tniTokenRenewDelay=1):
         if not tsBasePacteUrl or len(tsBasePacteUrl) == 0:
             raise ValueError("PACTE url should not be null")
 
@@ -93,12 +93,9 @@ class QuickConfig:
                       tsCustomPassword)
         return cfg
 
-
-
     def __init__(self, tsBaseURLAuthen="", tsBaseURLPacteBE="",
                  tsBaseURLPSCUser="", tsBaseURLService="",
-                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential = None ):
-
+                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential=None):
 
         self.baseURLAuthen = tsBaseURLAuthen
         self.baseURLPacteBE = tsBaseURLPacteBE
@@ -111,11 +108,10 @@ class QuickConfig:
         else:
             self.credential = dict()
 
-
     def setConfig(self, tsBaseURLAuthen, tsBaseURLService, tniTokenRenewDelay,
-                      tbVerbose, tsAdminPSCUsername, tsAdminPSCPassword,
-                      tsAdminPacteUsername, tsAdminPactePassword, tsCustomUser,
-                      tsCustomPassword):
+                  tbVerbose, tsAdminPSCUsername, tsAdminPSCPassword,
+                  tsAdminPacteUsername, tsAdminPactePassword, tsCustomUser,
+                  tsCustomPassword):
 
         self.baseURLAuthen = tsBaseURLAuthen
         if not self.baseURLAuthen.endswith("/"):
@@ -140,7 +136,6 @@ class QuickConfig:
             self.credential[UserType.PacteAdmin] = \
                 Credential(tsAdminPacteUsername, tsAdminPactePassword)
 
-
         # Pacte Custom User
         if tsCustomUser and tsCustomPassword:
             self.credential[UserType.CustomUser] = \
@@ -149,7 +144,6 @@ class QuickConfig:
     def setCustomUser(self, tsUsername, tsPassword):
         self.credential[UserType.CustomUser] = \
             Credential(tsUsername, tsPassword)
-
 
     def getUserCredential(self, toType):
         return self.credential.get(toType, None)
@@ -168,7 +162,7 @@ class QuickConfig:
         lsReturn = None
         now = datetime.datetime.now()
         time_limit = now - self.tokenRenewDelay
-        if toUserCredentials.tokenCreation is None or (toUserCredentials.tokenCreation < time_limit) :
+        if toUserCredentials.tokenCreation is None or (toUserCredentials.tokenCreation < time_limit):
             toUserCredentials.setToken(None)
 
             json_dict = {"username": toUserCredentials.username,
@@ -194,7 +188,7 @@ class QuickConfig:
 
         if toUsertype:
             headers = {"Authorization": "Bearer " + str(self.getToken(self.credential.get(toUsertype))),
-                       "AuthorizationAudience" : "Pacte"}
+                       "AuthorizationAudience": "Pacte"}
         else:
             headers = None
 
@@ -206,7 +200,7 @@ class QuickConfig:
         except Exception as e:
             print(e)
 
-        return  resp
+        return resp
 
     def deleteRequest(self, tsTargetEndpoint, toUsertype, toParams=None):
 
@@ -224,23 +218,22 @@ class QuickConfig:
         else:
             headers = None
 
-
         try:
             resp = requests.delete(tsTargetEndpoint, params=toParams, headers=headers)
             if self.verbose or (resp.status_code != 200 and resp.status_code != 204):
-                print("Response Status : " + str(resp.status_code) )
+                print("Response Status : " + str(resp.status_code))
 
         except Exception as e:
             print(e)
 
         return resp
 
-    def postRequest(self, tsTargetEndpoint, toUsertype, tdJson2Post):
+    def postRequest(self, tsTargetEndpoint, toUsertype, tdJson2Post, filedata=None):
 
         try:
             validators.url(tsTargetEndpoint)
         except validators.ValidationFailure as val:
-            if (self.verbose):
+            if self.verbose:
                 print(val)
             return None
 
@@ -251,14 +244,20 @@ class QuickConfig:
         else:
             headers = dict()
 
-        headers["Content-type"] = "application/json"
-        headers["Accept"] = "application/json"
+        if not filedata:
+            headers["Content-type"] = "application/json"
+            headers["Accept"] = "application/json"
 
+        resp = None
         try:
-            resp = requests.post(tsTargetEndpoint, json=tdJson2Post, headers=headers)
+            if filedata:
+                resp = requests.post(tsTargetEndpoint, headers=headers, data=tdJson2Post, files=filedata)
+            else:
+                resp = requests.post(tsTargetEndpoint, json=tdJson2Post, headers=headers)
 
             if self.verbose or (resp.status_code != 200 and resp.status_code != 204):
-                print("Response Status : " + str(resp.status_code) )
+                print("Response Status : " + str(resp.status_code))
+                print(resp.text)
 
         except Exception as e:
             print(e)
@@ -286,7 +285,7 @@ class QuickConfig:
 
         try:
             resp = requests.put(tsTargetEndpoint, json=tdJson2Put,
-                                 headers=headers)
+                                headers=headers)
 
             if self.verbose or (
                     resp.status_code != 200 and resp.status_code != 204):
