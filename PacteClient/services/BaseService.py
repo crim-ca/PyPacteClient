@@ -1,4 +1,5 @@
 import json
+import time
 from PacteUtil.QuickConfig import QuickConfig
 from PacteUtil.QuickConfig import UserType
 
@@ -52,6 +53,25 @@ class BaseService(object):
             self.lastUUID = jres["uuid"]
 
         return self.lastUUID
+
+    def waitUntilFinished(self, maxWaitTime=60*60*24, waitBetweenCheck=5):
+        """
+
+        :param maxWaitTime: Maximum time in second to wait for the service to fail or succeed
+        :param waitBetweenCheck: Time in seconds to wait between status check
+        :return:
+        """
+        if not self.lastUUID or maxWaitTime <= 0 or waitBetweenCheck <= 0:
+            return None
+
+        start_time = time.time()
+        while time.time() - start_time <= maxWaitTime:
+            status = self.checkStatus()
+            lsResult = json.loads(status.text)
+            if lsResult["status"].lower() in ["success", "failure"]:
+                break
+            else:
+                time.sleep(waitBetweenCheck)
 
     def get_json_config(self):
         pass
