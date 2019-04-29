@@ -62,7 +62,7 @@ class CorpusManager:
         form_data = {"file": (os.path.basename(zipfile), open(zipfile, 'rb'))}
 
         resp = self.config.postRequest(self.config.baseURLPacteBE + "Corpora/importCorpusDocuments",
-                                       UserType.CustomUser, j2p, multipartdata=form_data)
+                                       UserType.CustomUser, j2p, filedata=form_data)
 
         if resp and len(resp.text) == 0:
             return True
@@ -80,21 +80,8 @@ class CorpusManager:
 
         return False
 
-    def getSize(self, corpusId):
-        #  String lsResponse = null;
-        #         lsResponse = poCfg.getRequest(poCfg.getPacteBackend() + "Corpora/corpus/" + tsCorpusId, USERTYPE.CustomUser,
-        #                 null);
-        #
-        #         if (lsResponse != null && !lsResponse.isEmpty()) {
-        #             JSONObject loJson = new JSONObject(lsResponse);
-        #             if (loJson.has("documentCount"))
-        #                 return loJson.getInt("documentCount");
-        #             else
-        #                 System.err.println("No document count returned : " + lsResponse);
-        #         }
-        #
-        #         return null;
-        resp = self.config.getRequest(self.config.baseURLPacteBE + "Corpora/corpus/" + corpusId,
+    def getSize(self, corpusid: str):
+        resp = self.config.getRequest(self.config.baseURLPacteBE + "Corpora/corpus/" + corpusid,
                                       UserType.CustomUser)
 
         if resp and len(resp.text) > 0:
@@ -219,7 +206,7 @@ class CorpusManager:
 
         return None
 
-    def getSchemaId(self, schemaName, corpusId=None, bucketId=None):
+    def getSchemaId(self, schemaName, corpusId=None, groupId=None):
         schemaList = self.getSchemas()
 
         for schema in schemaList:
@@ -228,25 +215,28 @@ class CorpusManager:
                 corpus_list = schema["relatedCorpusBuckets"]
 
                 if (not corpusId or len(corpusId) == 0) \
-                        and (not bucketId or len(bucketId) == 0) \
+                        and (not groupId or len(groupId) == 0) \
                         and len(corpus_list) == 0:
                     return schemaId
-                elif ((bucketId and len(bucketId) > 0)
+                elif ((groupId and len(groupId) > 0)
                       or corpusId and len(corpusId) > 0) and len(corpus_list) > 0:
                     corp = corpus_list[0]["corpusId"]
                     buck = corpus_list[0]["bucketId"]
 
-                    if len(corp) == 0 or (corp == corpusId and (len(buck) == 0 or buck == bucketId)):
+                    if len(corp) == 0 or (corp == corpusId and (len(buck) == 0 or buck == groupId)):
                         return schemaId
 
         return None
 
-    def registerSchema(self, schema_json):
-
-        j = dict(schemaJsonContent=schema_json)
-
-        resp = self.config.postRequest(self.config.baseURLPacteBE + "Schemas/schema",
-                                       UserType.CustomUser, j)
+    def registerSchema(self, schema_json: str):
+        """
+        Add schema to the user space
+        :param schema_json: String of the raw schema in utf-8
+        :return: New schema id
+        """
+        resp = self.config.postRequest(self.config.baseURLPacteBE + "Schemas/schema", UserType.CustomUser, None,
+                                       filedata=json.dumps({"schemaJsonContent": json.dumps(schema_json)}),
+                                       bJsonData=True)
 
         if resp:
             return resp.json().get("id", None)

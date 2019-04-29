@@ -2,6 +2,7 @@
 import enum
 import datetime
 import configparser
+import os
 
 # --- 3rd party Libraries ------------------------------------------------------
 import requests
@@ -30,6 +31,7 @@ class QuickConfig:
                 cfg.read_file(cfp)
         except IOError as ioe:
             print("IO error: {}".format(ioe))
+            print(os.getcwd())
 
         return cfg._sections[config]
 
@@ -48,6 +50,7 @@ class QuickConfig:
         tsAdminPactePassword = cfg_dict.get("pacteadminpwd", None)
         tsCustomUser = cfg_dict.get("standarduser", None)
         tsCustomPassword = cfg_dict.get("standarduserpwd", None)
+        baseRacsUrl = cfg_dict.get("RacsUrl", None)
         cfg = cls()
 
         cfg.setConfig(tsBaseURLAuthen, tsBaseURLService, tniTokenRenewDelay,
@@ -76,7 +79,7 @@ class QuickConfig:
     # New configuration with user level credentials
     @classmethod
     def configForUser(cls, tsBasePacteUrl, tsCustomUser, tsCustomPassword,
-                      tbVerbose=False, tniTokenRenewDelay=1):
+                      tbVerbose=False, tniTokenRenewDelay=1, tsBaseURLService: str = "", tsRacsUrl: str = ""):
         if not tsBasePacteUrl or len(tsBasePacteUrl) == 0:
             raise ValueError("PACTE url should not be null")
 
@@ -84,23 +87,23 @@ class QuickConfig:
             raise ValueError("Username should not be null")
 
         cfg = cls()
-        cfg_dict = QuickConfig.readConfiguration(QuickConfig.config_file_path)
-        tsBaseURLService = cfg_dict["serviceurl"]
+        # cfg_dict = QuickConfig.readConfiguration(QuickConfig.config_file_path)
 
         cfg.setConfig(tsBasePacteUrl, tsBaseURLService, datetime.timedelta(days=tniTokenRenewDelay),
                       tbVerbose, None, None,
                       None, None, tsCustomUser,
-                      tsCustomPassword)
+                      tsCustomPassword, tsRacsUrl)
         return cfg
 
     def __init__(self, tsBaseURLAuthen="", tsBaseURLPacteBE="",
                  tsBaseURLPSCUser="", tsBaseURLService="",
-                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential=None):
+                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential=None, RacsUrl=None):
 
         self.baseURLAuthen = tsBaseURLAuthen
         self.baseURLPacteBE = tsBaseURLPacteBE
         self.baseURLPSCUser = tsBaseURLPSCUser
         self.baseURLService = tsBaseURLService
+        self.baseRacsUrl = RacsUrl
         self.tokenRenewDelay = datetime.timedelta(days=tniTokenRenewDelay)
         self.verbose = tpVerbose
         if toCredential:
@@ -111,7 +114,7 @@ class QuickConfig:
     def setConfig(self, tsBaseURLAuthen, tsBaseURLService, tniTokenRenewDelay,
                   tbVerbose, tsAdminPSCUsername, tsAdminPSCPassword,
                   tsAdminPacteUsername, tsAdminPactePassword, tsCustomUser,
-                  tsCustomPassword):
+                  tsCustomPassword, RacsUrl):
 
         self.baseURLAuthen = tsBaseURLAuthen
         if not self.baseURLAuthen.endswith("/"):
@@ -123,6 +126,7 @@ class QuickConfig:
         if not self.baseURLService.endswith("/"):
             self.baseURLService += "/"
 
+        self.baseRacsUrl = RacsUrl
         self.tokenRenewDelay = tniTokenRenewDelay
         self.verbose = tbVerbose
 
@@ -158,6 +162,21 @@ class QuickConfig:
         if not tsServiceUrl.endswith("/"):
             self.baseURLService += "/"
 
+    def getFileStorageUrl(self, filename, toUserType: UserType = UserType.CustomUser):
+        """
+        Get a new file pointer of the multimedia storage system
+        :param filename:
+        :param toUsertype:
+        :return:
+        """
+
+        lsReturn = self.getRequest("http://patx-pacte.crim.ca:5170/add", toUserType, useServiceToken=True,
+                                   toParams={"filename": filename})
+        if lsReturn:
+            return lsReturn.json()["upload_url"]
+        else:
+            return None
+
     def getToken(self, toUserCredentials):
         lsReturn = None
         now = datetime.datetime.now()
@@ -177,18 +196,38 @@ class QuickConfig:
 
         return toUserCredentials.token
 
-    def getRequest(self, tsTargetEndpoint, toUsertype, toParams=None):
+    def getServiceToken(self, toUsertype):
+        """
+        Return the jwt token to access services execution
+        :param toUsertype:
+        :return:
+        """
+        httpheaders = {"Authorization": "Bearer " + str(self.getToken(self.credential.get(toUsertype))),
+                       "AuthorizationAudience": "Pacte",
+                       "Content-type": "application/json",
+                       "Accept": "application/json"}
 
+        lsReturn = requests.get(self.baseURLAuthen + "pacte/Services/servicesSecurityToken", headers=httpheaders)
+
+        if lsReturn and len(lsReturn.text) > 0 and "unauthorized" not in lsReturn.text:
+            return lsReturn.json()["token"]
+        else:
+            return None
+
+    def getRequest(self, tsTargetEndpoint, toUsertype, toParams=None, useServiceToken=False):
         try:
             validators.url(tsTargetEndpoint)
         except validators.ValidationFailure as val:
-            if (self.verbose):
+            if self.verbose:
                 print(val)
             return None
 
         if toUsertype:
-            headers = {"Authorization": "Bearer " + str(self.getToken(self.credential.get(toUsertype))),
-                       "AuthorizationAudience": "Pacte"}
+            if useServiceToken:
+                headers = {"Authorization": str(self.getServiceToken(toUsertype))}
+            else:
+                headers = {"Authorization": "Bearer " + str(self.getToken(self.credential.get(toUsertype)))}
+            headers["AuthorizationAudience"] = "Pacte"
         else:
             headers = None
 
@@ -203,7 +242,6 @@ class QuickConfig:
         return resp
 
     def deleteRequest(self, tsTargetEndpoint, toUsertype, toParams=None):
-
         try:
             validators.url(tsTargetEndpoint)
         except validators.ValidationFailure as val:
@@ -228,8 +266,8 @@ class QuickConfig:
 
         return resp
 
-    def postRequest(self, tsTargetEndpoint, toUsertype, tdJson2Post, filedata=None):
-
+    def postRequest(self, tsTargetEndpoint: str, toUsertype, tdJson2Post, filedata=None, bJsonData=False,
+                    useServiceToken=False):
         try:
             validators.url(tsTargetEndpoint)
         except validators.ValidationFailure as val:
@@ -238,20 +276,26 @@ class QuickConfig:
             return None
 
         if toUsertype:
-            headers = {"Authorization": "Bearer " + self.getToken(
-                self.credential.get(toUsertype)),
-                       "AuthorizationAudience": "Pacte"}
+            if useServiceToken:
+                headers = {"Authorization": str(self.getServiceToken(toUsertype))}
+            else:
+                headers = {"Authorization": "Bearer " + str(self.getToken(self.credential.get(toUsertype)))}
+            headers["AuthorizationAudience"] = "Pacte"
         else:
             headers = dict()
 
-        if not filedata:
+        if not filedata or bJsonData:
             headers["Content-type"] = "application/json"
+            headers["cache-control"] = "no-cache"
             headers["Accept"] = "application/json"
 
         resp = None
         try:
             if filedata:
-                resp = requests.post(tsTargetEndpoint, headers=headers, data=tdJson2Post, files=filedata)
+                if tdJson2Post:
+                    resp = requests.post(tsTargetEndpoint, headers=headers, data=tdJson2Post, files=filedata)
+                else:
+                    resp = requests.post(tsTargetEndpoint, headers=headers, data=filedata)
             else:
                 resp = requests.post(tsTargetEndpoint, json=tdJson2Post, headers=headers)
 
@@ -265,7 +309,6 @@ class QuickConfig:
         return resp
 
     def putRequest(self, tsTargetEndpoint, toUsertype, tdJson2Put):
-
         try:
             validators.url(tsTargetEndpoint)
         except validators.ValidationFailure as val:

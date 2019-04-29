@@ -1,7 +1,6 @@
 import datetime
 
 
-
 class Credential:
 
     def __init__(self, username, password, prenom=None, nom=None,
@@ -18,8 +17,8 @@ class Credential:
 
     def setToken(self, tsNewToken):
 
-        if tsNewToken and len(tsNewToken) > 0 :
+        if tsNewToken and len(tsNewToken) > 0:
             self.token = tsNewToken
         else:
-            self.token =  None
+            self.token = None
         self.tokenCreation = datetime.datetime.now()

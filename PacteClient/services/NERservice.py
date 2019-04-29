@@ -2,7 +2,8 @@ import json
 from enum import Enum
 
 # --- Project Libraries --------------------------------------------------------
-from PacteUtil import QuickConfig
+from PacteUtil.QuickConfig import QuickConfig
+from .BaseService import BaseService
 
 
 class LINKING_METHOD(Enum):
@@ -12,14 +13,16 @@ class LINKING_METHOD(Enum):
     Graph = "graph"
 
 
-class NERservice():
+class NERservice(BaseService):
     SERVICENAME = "pacte_lexical"
     TOOLNAME = "ner"
 
-    def __init__(self, config: QuickConfig):
-        self.config = config
+    def __init__(self, quicfg: QuickConfig):
+        super().__init__()
         self.ServiceUrl = self.config.getServiceUrl()
-        self.psCorpusId = None
+        self.servicename = "pacte_semantic"
+        self.tool = "ner"
+
         self.docUrl = None
         self.model = None
         self.doLinking = None
@@ -30,9 +33,9 @@ class NERservice():
         self.labels = None
         self.params = None
 
-    def setOptions(self, corpusId: str, docUrl: str, modelName: str, doLinking: bool,
-                   linkingMethod: LINKING_METHOD, reportUrl: str, annotationUploadUrl: str, schemaUploadUrl: str,
-                   labels: list, customParams: dict):
+    def set_options(self, corpusId: str, docUrl: str, modelName: str, doLinking: bool,
+                    linkingMethod: LINKING_METHOD, reportUrl: str, annotationUploadUrl: str, schemaUploadUrl: str,
+                    labels: list, customParams: dict):
         """
 
         :param corpusId:
@@ -47,7 +50,7 @@ class NERservice():
         :param customParams:
         :return:
         """
-        self.psCorpusId = corpusId
+        self.corpusId = corpusId
         self.docUrl = docUrl
         self.model = modelName
         self.doLinking = doLinking
@@ -61,7 +64,7 @@ class NERservice():
 
         return True
 
-    def getJsonConfig(self):
+    def get_json_config(self):
         """
         Get the json config file ready for the service
         :return:
@@ -95,17 +98,3 @@ class NERservice():
             self.lastUUID = jres["uuid"]
 
         return self.lastUUID
-
-    # @Override
-    def getInfo(self):
-        return "Not implemented"
-
-    # @Override
-    def checkStatus(self, UUID: str):
-        lsResponse = self.config.getRequest(self.config.getServiceUrl() + self.SERVICENAME + "/status?uuid=" + UUID,
-                                            None, None)
-        return lsResponse
-
-    # @Override
-    def checkStatus(self):
-        return self.checkStatus(self.lastUUID)
