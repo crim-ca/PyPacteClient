@@ -6,22 +6,25 @@ from PacteUtil.QuickConfig import QuickConfig
 from .BaseService import BaseService
 
 
-class LINKING_METHOD(Enum):
+class NerLinkingMethod(Enum):
     Cluster = "cluster"
     AltNameLength = "altnamelength"
     Population = "population"
     Graph = "graph"
 
 
-class NERservice(BaseService):
-    SERVICENAME = "pacte_lexical"
-    TOOLNAME = "ner"
+class Tools(Enum):
+    NER = "ner"
+    TIM = "timex"
+
+
+class SEMservice(BaseService):
 
     def __init__(self, quicfg: QuickConfig):
-        super().__init__()
+        super().__init__(quicfg)
         self.ServiceUrl = self.config.getServiceUrl()
         self.servicename = "pacte_semantic"
-        self.tool = "ner"
+        self.tool = Tools.NER.value
 
         self.docUrl = None
         self.model = None
@@ -33,16 +36,16 @@ class NERservice(BaseService):
         self.labels = None
         self.params = None
 
-    def set_options(self, corpusId: str, docUrl: str, modelName: str, doLinking: bool,
-                    linkingMethod: LINKING_METHOD, reportUrl: str, annotationUploadUrl: str, schemaUploadUrl: str,
+    def set_options(self, corpus_id: str, doc_url: str, model_name: str, do_linking: bool,
+                    linking_method: NerLinkingMethod, reportUrl: str, annotationUploadUrl: str, schemaUploadUrl: str,
                     labels: list, customParams: dict):
         """
 
-        :param corpusId:
-        :param docUrl:
-        :param modelName:
-        :param doLinking:
-        :param linkingMethod:
+        :param corpus_id:
+        :param doc_url:
+        :param model_name:
+        :param do_linking:
+        :param linking_method:
         :param reportUrl:
         :param annotationUploadUrl:
         :param schemaUploadUrl:
@@ -50,11 +53,11 @@ class NERservice(BaseService):
         :param customParams:
         :return:
         """
-        self.corpusId = corpusId
-        self.docUrl = docUrl
-        self.model = modelName
-        self.doLinking = doLinking
-        self.linkingMethod = linkingMethod
+        self.corpusId = corpus_id
+        self.docUrl = doc_url
+        self.model = model_name
+        self.doLinking = do_linking
+        self.linkingMethod = linking_method
         self.reportUrl = reportUrl
         self.schemaUpload = schemaUploadUrl
         self.annotationUploadUrl = annotationUploadUrl

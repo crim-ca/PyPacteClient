@@ -1,4 +1,3 @@
-import json
 from enum import Enum
 
 # --- Project Libraries --------------------------------------------------------
@@ -30,26 +29,27 @@ class POSservice(BaseService):
         self.docMetaInfoUrl = ""
         self.corpusMetaInfoUrl = ""
 
-    def set_options(self, corpusId: str, docUrl: str, docMetaInfoUrl: str, corpusMetaInfoUrl: str,
-                    reportUrl: str, annotationUploadUrl: str, schemaUploadUrl: str, tool:Tools):
+    def set_options(self, corpus_id: str, doc_url: str, doc_meta_info_url: str, corpus_meta_info_url: str,
+                    report_url: str, annotation_upload_url: str, schema_upload_url: str, tool: Tools):
         """
-
-        :param corpusId:
-        :param docUrl:
-        :param docMetaInfoUrl:
-        :param corpusMetaInfoUrl:
-        :param reportUrl:
-        :param annotationUploadUrl:
-        :param schemaUploadUrl:
+        Set execution paramters for the service
+        :param corpus_id:
+        :param doc_url:
+        :param doc_meta_info_url:
+        :param corpus_meta_info_url:
+        :param report_url:
+        :param annotation_upload_url:
+        :param schema_upload_url:
+        :param tool:
         :return:
         """
-        self.corpusId = corpusId
-        self.docUrl = docUrl
-        self.docMetaInfoUrl = docMetaInfoUrl
-        self.corpusMetaInfoUrl = corpusMetaInfoUrl
-        self.reportUrl = reportUrl
-        self.schemaUpload = schemaUploadUrl
-        self.annotationUploadUrl = annotationUploadUrl
+        self.corpusId = corpus_id
+        self.docUrl = doc_url
+        self.docMetaInfoUrl = doc_meta_info_url
+        self.corpusMetaInfoUrl = corpus_meta_info_url
+        self.reportUrl = report_url
+        self.schemaUpload = schema_upload_url
+        self.annotationUploadUrl = annotation_upload_url
         self.tool = tool
 
         return True
@@ -59,15 +59,14 @@ class POSservice(BaseService):
         Get the json config file ready for the service
         :return:
         """
-
-        json_data = {}
-
+        json_data = dict()
         json_data["corpus_id"] = self.corpusId
-        json_data["annot_out_url"] = self.annotationUploadUrl
-        json_data["report_out_url"] = self.reportUrl
-        json_data["schema_upload_url"] = self.schemaUpload
-        json_data["doc_meta_info_url"] = self.docMetaInfoUrl
-        json_data["corpus_meta_info_url"] = self.corpusMetaInfoUrl
         json_data["tool"] = self.tool
+        if self.tool == "postagger":
+            json_data["annot_out_url"] = self.annotationUploadUrl
+            json_data["report_out_url"] = self.reportUrl
+            json_data["schema_upload_url"] = self.schemaUpload
+            json_data["doc_meta_info_url"] = self.docMetaInfoUrl
+            json_data["corpus_meta_info_url"] = self.corpusMetaInfoUrl
 
         return json_data
