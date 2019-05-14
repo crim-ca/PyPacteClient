@@ -62,6 +62,7 @@ class BaseService(object):
         Loop until the service fail or succeed, or a timeout is reached
         :param max_wait_time: Maximum time in second to wait for the service to fail or succeed
         :param wait_between_check: Time in seconds to wait between status check
+        :param verbose:
         :return: Last status logged by the service on the service gateway
         """
         if not self.lastUUID or max_wait_time <= 0 or wait_between_check <= 0:
@@ -71,14 +72,17 @@ class BaseService(object):
         start_time = time.time()
         while time.time() - start_time <= max_wait_time:
             status = self.checkstatus()
-            result = json.loads(status.text)
+            if status:
+                result = json.loads(status.text)
 
-            if str(result["status"]).lower() in ["success", "failure"]:
-                break
-            else:
-                if verbose:
-                    print(str(result["status"]) + " (" + datetime.datetime.now().strftime('%H:%M:%S') + ")")
-                time.sleep(wait_between_check)
+                if str(result["status"]).lower() in ["success", "failure"]:
+                    break
+                else:
+                    if verbose:
+                        print(
+                            str(result["status"]) + " (" + datetime.datetime.now().strftime('%d/%m/%Y, %H:%M:%S') + ")")
+                    time.sleep(wait_between_check)
+
         return status
 
     def get_json_config(self):

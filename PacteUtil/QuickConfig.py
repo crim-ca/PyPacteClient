@@ -222,6 +222,8 @@ class QuickConfig:
                 print(val)
             return None
 
+        resp = None
+
         if toUsertype:
             if useServiceToken:
                 headers = {"Authorization": str(self.getServiceToken(toUsertype))}
@@ -268,6 +270,17 @@ class QuickConfig:
 
     def postRequest(self, tsTargetEndpoint: str, toUsertype, tdJson2Post, filedata=None, bJsonData=False,
                     useServiceToken=False):
+        """
+
+        :param tsTargetEndpoint:
+        :param toUsertype:
+        :param tdJson2Post:
+        :param filedata:
+        :param bJsonData:
+        :param useServiceToken:
+        :return: :class:`Response <Response>` object
+        :rtype: requests.Response
+        """
         try:
             validators.url(tsTargetEndpoint)
         except validators.ValidationFailure as val:
