@@ -59,7 +59,7 @@ class CorpusManager:
 
         j2p = {"corpusId": corpusId,
                "options": options}
-        form_data = {"file": (os.path.basename(zipfile), open(zipfile, 'rb'))}
+        form_data = {"file": (os.path.basename(zipfile), open(zipfile, 'rb', encoding="UTF-8"))}
 
         resp = self.config.postRequest(self.config.baseURLPacteBE + "Corpora/importCorpusDocuments",
                                        UserType.CustomUser, j2p, multipartdata=form_data)
@@ -356,7 +356,7 @@ class CorpusManager:
         if not corpus_dir_path.exists():
             return None
         try:
-            with corpus_dir_path.joinpath(CorpusManager.CORPUSMETA).open("r") as corpus_meta_file:
+            with corpus_dir_path.joinpath(CorpusManager.CORPUSMETA).open("r", encoding="UTF-8") as corpus_meta_file:
                 corpus_meta = json.load(corpus_meta_file)
         except IOError:
             print("Missing corpus metadata")
@@ -369,7 +369,7 @@ class CorpusManager:
 
         try:
             with corpus_dir_path.joinpath(CorpusManager.CORPUS_STRUCT_FILE).open(
-                    "r") as corpus_meta_file:
+                    "r", encoding="UTF-8") as corpus_meta_file:
                 corpus_struct = json.load(corpus_meta_file)
         except IOError:
             print("Corpus structure is missing from exporte")
@@ -391,12 +391,12 @@ class CorpusManager:
                 schema_file_path = corpus_dir_path.joinpath("groups") \
                     .joinpath(oldGroupId).joinpath(schema["schemaType"]).with_suffix(".schema")
                 if schema_file_path.exists():
-                    with schema_file_path.open("r") as schema_file:
+                    with schema_file_path.open("r", encoding="UTF-8") as schema_file:
                         schema_j = json.load(schema_file)["schema"]["schemaJsonContent"]
                 elif schema_file_path.name.lower() == CorpusManager.DOCMETASchema.lower():
                     try:
                         with Path(__file__).parent.joinpath("data").joinpath(CorpusManager.DOCMETA).open(
-                                "r") as docmeta_file:
+                                "r", encoding="UTF-8") as docmeta_file:
                             schema_j = json.load(docmeta_file)
                     except IOError as e:
                         print(e)
@@ -410,7 +410,7 @@ class CorpusManager:
 
         try:
             for p in document_dir_path.iterdir():
-                with p.open("r") as doc_f:
+                with p.open("r", encoding="UTF-8") as doc_f:
                     doc_json = json.load(doc_f)
                 docOldId = doc_json["id"]
                 docId = self.addDocument(corpusNewId, doc_json["text"], doc_json["title"], doc_json["source"],
@@ -422,7 +422,7 @@ class CorpusManager:
                         docOldId).with_suffix(".json")
                     if not annot_file_path.exists():
                         continue
-                    with annot_file_path.open("r") as annot_file:
+                    with annot_file_path.open("r", encoding="UTF-8") as annot_file:
                         annot = json.load(annot_file)
                     if annot is None:
                         continue
@@ -464,7 +464,7 @@ class CorpusManager:
         groupFolderPath.mkdir()
 
         # Download corpus specs and save them
-        with outputPath.joinpath("corpus.json").open("w") as corpus_file:
+        with outputPath.joinpath("corpus.json").open("w", encoding="UTF-8") as corpus_file:
             json.dump(self.getCorpusMetadata(corpusId).json(), corpus_file, indent=4)
 
         # Download the corpus structure and replicate it
@@ -473,7 +473,7 @@ class CorpusManager:
 
         if resp:
             j = resp.json()
-            with outputPath.joinpath(CorpusManager.CORPUS_STRUCT_FILE).open("w") as struct_file:
+            with outputPath.joinpath(CorpusManager.CORPUS_STRUCT_FILE).open("w", encoding="UTF-8") as struct_file:
                 json.dump(j, struct_file, indent=4)
 
             for b in j.get("buckets", None):
@@ -486,8 +486,8 @@ class CorpusManager:
                         buckets[bucket_id].append(schemaName)
                         schemaId = self.getSchemaId(schemaName, corpusId, bucket_id)
                         if schemaId:
-                            with groupFolderPath.joinpath(schemaName).with_suffix(".schema").open(
-                                    "w") as schema_file:
+                            with open(groupPath.joinpath(schemaName).with_suffix(".schema"), "w",
+                                      encoding="UTF-8") as schema_file:
                                 json.dump(self.getSchema(schemaId), schema_file, indent=4)
 
             # Check if all required groups are in the structure, if not, exit.
@@ -502,12 +502,16 @@ class CorpusManager:
             for doc in docList:
                 resp = self.config.getRequest(self.config.baseURLPacteBE + "RACSProxy/corpora/" + corpusId +
                                               "/documents/" + doc.id, UserType.CustomUser)
-                with docFolderPath.joinpath(doc.id).with_suffix(".json").open("w") as doc_file:
+                with docFolderPath.joinpath(doc.id).with_suffix(".json").open("w", encoding="UTF-8") as doc_file:
                     json.dump(resp.json(), doc_file)
+
                 for groupId, schemas in buckets.items():
                     if len(schemas) > 0:
-                        annotationList = self.getAnnotations(corpusId, doc.id, dict(groupId=schemas))
-                        with groupFolderPath.joinpath("groupId").with_suffix(".json").open("w") as group_file:
+                        grpschema = dict()
+                        grpschema[groupId] = schemas
+                        annotationList = self.getAnnotations(corpusId, doc.id, grpschema)
+                        with open(os.path.join(groupFolderPath, groupId, doc.id + ".json"), "w",
+                                  encoding="UTF-8") as group_file:
                             json.dump(annotationList, group_file)
 
             return True
