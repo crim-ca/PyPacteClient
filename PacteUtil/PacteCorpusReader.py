@@ -57,9 +57,11 @@ class Document:
         self.language = ""
         self.annotations = []
 
-    def merge_annotations(self):
+    def merge_annotations(self, cut_lines=False):
         """
         Joindre les annotations contigues
+        :param cut_lines: boolean. if true, do not merge annotations separated
+        by an end of line
         :return: None
         """
         for a in self.annotations:
@@ -67,13 +69,12 @@ class Document:
                 if not a == b and a.type == b.type and a.features == b.features:
                     if a.iscontiguous(b):
                         # print("Should merge " + str(a) + " and " + str(b))
-                        a.offsets[0] = \
-                            (a.offsets[0][0]
-                             if a.offsets[0][0] < b.offsets[0][0]
-                             else b.offsets[0][0],
-                             b.offsets[0][1]
-                             if b.offsets[0][1] > a.offsets[0][1]
-                             else a.offsets[0][1])
+                        a.offsets[0] = (a.offsets[0][0] if a.offsets[0][0] <
+                                                           b.offsets[0][0]
+                                        else b.offsets[0][0],
+                                        b.offsets[0][1] if b.offsets[0][1] >
+                                                           a.offsets[0][1]
+                                        else a.offsets[0][1])
                         self.annotations.remove(b)
                     else:
                         # TODO: support multi-offset annotation
@@ -85,14 +86,15 @@ class Document:
                             start = b.offsets[0][1]
                             end = a.offsets[0][0]
 
-                        if len(self.text[start:end].strip()) == 0:
-                            a.offsets[0] = \
-                                (a.offsets[0][0]
-                                 if a.offsets[0][0] < b.offsets[0][0]
-                                 else b.offsets[0][0],
-                                 b.offsets[0][1]
-                                 if b.offsets[0][1] > a.offsets[0][1]
-                                 else a.offsets[0][1])
+                        if len(self.text[start:end].strip()) == 0 \
+                                and (not cut_lines or "\n" not in
+                                     self.text[start:end]):
+                            a.offsets[0] = (a.offsets[0][0] if a.offsets[0][0]
+                                                               < b.offsets[0][0]
+                                            else b.offsets[0][0],
+                                            b.offsets[0][1] if b.offsets[0][1]
+                                                               > a.offsets[0][1]
+                                            else a.offsets[0][1])
                             self.annotations.remove(b)
 
 
