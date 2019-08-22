@@ -95,7 +95,7 @@ class QuickConfig:
 
     def __init__(self, tsBaseURLAuthen="", tsBaseURLPacteBE="",
                  tsBaseURLPSCUser="", tsBaseURLService="",
-                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential=None):
+                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential:Credential=None):
 
         self.baseURLAuthen = tsBaseURLAuthen
         self.baseURLPacteBE = tsBaseURLPacteBE
@@ -161,7 +161,7 @@ class QuickConfig:
     def getToken(self, toUserCredentials):
         lsReturn = None
         now = datetime.datetime.now()
-        time_limit = now - self.tokenRenewDelay
+        time_limit = now - datetime.timedelta(hours=self.tokenRenewDelay)
         if toUserCredentials.tokenCreation is None or (toUserCredentials.tokenCreation < time_limit):
             toUserCredentials.setToken(None)
 

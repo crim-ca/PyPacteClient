@@ -7,7 +7,7 @@ import os
 
 # --- Project Libraries --------------------------------------------------------
 from PacteUtil.Credential import Credential
-from PacteUtil.QuickConfig import UserType
+from PacteUtil.QuickConfig import QuickConfig, UserType
 from PacteClient.PacteDocument import PacteDocument
 
 
@@ -17,8 +17,8 @@ class CorpusManager:
     DOCMETASchema = "DOCUMENT_META.schema"
     CORPUSMETA = "corpus.json"
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, config: QuickConfig):
+        self.config: QuickConfig = config
 
     def createCorpus(self, nomCorpus, langList):
         """

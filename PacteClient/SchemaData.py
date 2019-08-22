@@ -42,11 +42,11 @@ class SchemaData(object):
         features = ""
         baseschema = ""
 
-        if self.targetType == TARGET.document_surface1d.name:
+        if self.targetType.name == TARGET.document_surface1d.name:
             url = "data/surface1d_schema.json"
-        elif self.targetType == TARGET.document.name:
+        elif self.targetType.name == TARGET.document.name:
             url = "data/document_schema.json"
-        elif self.targetType == TARGET.corpus.name:
+        elif self.targetType.name == TARGET.corpus.name:
             url = "data/corpus_schema.json"
 
         with open(os.path.join(os.path.dirname(__file__), url), 'r', encoding="UTF-8") as fs:
