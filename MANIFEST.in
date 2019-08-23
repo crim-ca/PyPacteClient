@@ -1,2 +1,2 @@
 include PacteClient/data/*.json
-include Pacteclient/data/tagsets/*.tagset
+include PacteClient/data/tagsets/*.tagset
