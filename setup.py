@@ -20,4 +20,5 @@ setup(name='PyPacteClient',
       author_email='pierre-andre.menard@crim.ca',
       packages=find_packages(),
       install_requires=REQUIREMENTS,
+      include_package_data=True,
       )
