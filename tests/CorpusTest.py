@@ -8,6 +8,8 @@ import time
 # --- Project Libraries --------------------------------------------------------
 from PacteClient.CorpusManager import CorpusManager
 from PacteUtil.QuickConfig import QuickConfig
+from PacteClient.SchemaData import SchemaData, TARGET
+from PacteClient.FeatureDefinition import FeatureDefinition
 from tests.TestUtil import createTestingUser, createSmallCorpus
 
 QuickConfig.config_file_path = "config.properties"
@@ -44,6 +46,20 @@ class TestCorpus(unittest.TestCase):
         group_id = corpus_manager.createBucket(corpus_id, str(uuid.uuid4()))
         self.assertIsNotNone(group_id)
         print("Created !")
+
+        # Register schema
+        print("Generate and add schema...")
+        feat_desc = FeatureDefinition("description", "description", "description of description", "", True, ["noop"],
+                                      False)
+        schemaTest = SchemaData(TARGET.document_surface1d, "TestSchema", {"description": feat_desc})
+        schemaId = corpus_manager.registerSchema(schemaTest.to_string())
+        print("Created ! (" + schemaId + ")")
+        self.assertTrue(corpus_manager.copySchemaToGroup(schemaId, corpus_id, group_id))
+
+        # Remove schema
+        print("Deleting schema " + schemaId + " ...")
+        corpus_manager.deleteSchema(schemaId)
+        print("Schema deleted!")
 
         # TODO delete annotation group
 

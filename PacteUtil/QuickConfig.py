@@ -40,7 +40,7 @@ class QuickConfig:
         tsBaseURLAuthen = cfg_dict["server"]
         tsBaseURLService = cfg_dict["serviceurl"]
 
-        tniTokenRenewDelay = datetime.timedelta(days=int(cfg_dict["tokenrenewdelay"]))
+        tniTokenRenewDelay = int(cfg_dict["tokenrenewdelay"])
         tbVerbose = cfg_dict["verbose"] in ["true", "True"]
         tsAdminPSCUsername = cfg_dict.get("pscadmin", None)
         tsAdminPSCPassword = cfg_dict.get("pscadminpwd", None)
@@ -101,7 +101,7 @@ class QuickConfig:
         self.baseURLPacteBE = tsBaseURLPacteBE
         self.baseURLPSCUser = tsBaseURLPSCUser
         self.baseURLService = tsBaseURLService
-        self.tokenRenewDelay = datetime.timedelta(days=tniTokenRenewDelay)
+        self.tokenRenewDelay = tniTokenRenewDelay
         self.verbose = tpVerbose
         if toCredential:
             self.credential = toCredential
