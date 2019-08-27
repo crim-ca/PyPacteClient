@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "targetType": "surface_1d",
+    "targetType": "document_surface1d",
     "schemaType": "###TEMPLATETYPE###",
     "title": "###TEMPLATETITLE###",
     "type": "object",
