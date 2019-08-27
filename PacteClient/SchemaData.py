@@ -58,10 +58,11 @@ class SchemaData(object):
         schema = schema.replace("###TEMPLATETITLE###", self.schemaType)
 
         # Generate features
-        for opt in self.featureList:
-            features += ', "' + opt + '":' + self.featureList[opt].string_definition()
-            if self.featureList[opt].isRequired:
-                required += ',"' + self.featureList[opt].name + '"'
+        if self.featureList:
+            for opt in self.featureList:
+                features += ', "' + opt + '":' + self.featureList[opt].string_definition()
+                if self.featureList[opt].isRequired:
+                    required += ',"' + self.featureList[opt].name + '"'
 
         # Insert features at the end of the schema
         if not self.featureList or len(self.featureList) == 0:
