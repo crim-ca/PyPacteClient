@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "targetType": "document",
+    "schemaType": "###TEMPLATETYPE###",
+    "title": "###TEMPLATETITLE###",
+    "type": "object",
+    "required": [
+        "schemaType",
+        "_corpusID",
+        "_documentID"###CUSTOMREQUIREDFIELDS###
+    ],
+    "properties": {
+        "schemaType": {
+            "type": "string",
+            "description": "Constant: '###TEMPLATETYPE###'",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "default": "###TEMPLATETYPE###",
+            "locked": true
+        },
+        "_documentID": {
+            "type": "string",
+            "description": "Internal document GUID",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        },
+        "_corpusID": {
+            "type": "string",
+            "description": "Internal Corpus GUID",
+            "searchable": true,
+            "searchModes": ["noop"],
+            "locked": true
+        } ###CUSTOMFEATURESLIST###
+    }
+}

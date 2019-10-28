@@ -1,0 +1,20 @@
+{
+	"title": "French Treebank - POS",
+	"description" : "Codification pour le FTB",
+	"reference" : "http://www.llf.cnrs.fr/Gens/Abeille/French-Treebank-fr.php",
+	"tagset": [{"tag": "A","description": "adjectif"},
+{"tag": "Adv","description": "adverbe"},
+{"tag": "CC","description": "conjonction de coordination"},
+{"tag": "Cl","description": "pronom clitic faible"},
+{"tag": "CS","description": "conjonction de subordination"},
+{"tag": "D","description": "determinant"},
+{"tag": "ET","description": "mot étranger"},
+{"tag": "I","description": "interjection"},
+{"tag": "NC","description": "nom commun"},
+{"tag": "NP","description": "nom propre"},
+{"tag": "P","description": "preposition"},
+{"tag": "PRE","description": "prefix"},
+{"tag": "PRO","description": "pronom fort"},
+{"tag": "V","description": "verbe"},
+{"tag": "PONCT","description": "ponctuation"}]
+}

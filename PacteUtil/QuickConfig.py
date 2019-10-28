@@ -42,7 +42,7 @@ class QuickConfig:
         tsBaseURLAuthen = cfg_dict["server"]
         tsBaseURLService = cfg_dict["serviceurl"]
 
-        tniTokenRenewDelay = datetime.timedelta(days=int(cfg_dict["tokenrenewdelay"]))
+        tniTokenRenewDelay = int(cfg_dict["tokenrenewdelay"])
         tbVerbose = cfg_dict["verbose"] in ["true", "True"]
         tsAdminPSCUsername = cfg_dict.get("pscadmin", None)
         tsAdminPSCPassword = cfg_dict.get("pscadminpwd", None)
@@ -180,7 +180,7 @@ class QuickConfig:
     def getToken(self, toUserCredentials):
         lsReturn = None
         now = datetime.datetime.now()
-        time_limit = now - self.tokenRenewDelay
+        time_limit = now - datetime.timedelta(hours=self.tokenRenewDelay)
         if toUserCredentials.tokenCreation is None or (toUserCredentials.tokenCreation < time_limit):
             toUserCredentials.setToken(None)
 

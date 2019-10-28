@@ -1,0 +1,2 @@
+include PacteClient/data/*.json
+include PacteClient/data/tagsets/*.tagset

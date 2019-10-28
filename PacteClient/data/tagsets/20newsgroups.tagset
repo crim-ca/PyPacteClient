@@ -1,0 +1,27 @@
+{
+	"title": "20 newsgroups",
+	"description": "Classification des vingt groupes de nouvelles.",
+	"reference": "https://archive.ics.uci.edu/ml/datasets/Twenty+Newsgroups",
+	"tagset": [
+	{"tag": "graphics","description": "comp.graphics"},
+{"tag": "os.ms-windows.misc","description": "comp.os.ms-windows.misc"},
+{"tag": "os.ms-windows.misc","description": "comp.os.ms-windows.misc"},
+{"tag": "sys.ibm.pc.hardware","description": "comp.sys.ibm.pc.hardware"},
+{"tag": "sys.mac.hardware","description": "comp.sys.mac.hardware"},
+{"tag": "windows.x","description": "comp.windows.x"},
+{"tag": "autos","description": "rec.autos"},
+{"tag": "motorcycles","description": "rec.motorcycles"},
+{"tag": "baseball","description": "rec.sport.baseball"},
+{"tag": "hockey","description": "rec.sport.hockey"},
+{"tag": "crypt","description": "sci.crypt"},
+{"tag": "electronics","description": "sci.electronics"},
+{"tag": "med","description": "sci.med"},
+{"tag": "space","description": "sci.space"},
+{"tag": "forsale","description": "misc.forsale"},
+{"tag": "politics.misc","description": "talk.politics.misc"},
+{"tag": "politics.guns","description": "talk.politics.guns"},
+{"tag": "politics.mideast","description": "talk.politics.mideast"},
+{"tag": "religion.misc","description": "talk.religion.misc"},
+{"tag": "atheism","description": "alt.atheism"},
+{"tag": "christian","description": "coosoc.religion.christian"}]
+}
