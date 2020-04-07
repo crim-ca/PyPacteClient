@@ -67,7 +67,7 @@ class QuickConfig:
 
         cfg = cls()
 
-        cfg.setConfig(tsBasePacteUrl, tsServiceUrl, datetime.timedelta(days=tniTokenRenewDelay),
+        cfg.setConfig(tsBasePacteUrl, tsServiceUrl, tniTokenRenewDelay,
                       tbVerbose, tsAdminPSCUsername, tsAdminPSCPassword,
                       tsAdminPacteUsername, tsAdminPactePassword, tsCustomUser,
                       tsCustomPassword)
@@ -87,15 +87,12 @@ class QuickConfig:
         cfg_dict = QuickConfig.readConfiguration(QuickConfig.config_file_path)
         tsBaseURLService = cfg_dict["serviceurl"]
 
-        cfg.setConfig(tsBasePacteUrl, tsBaseURLService, datetime.timedelta(days=tniTokenRenewDelay),
-                      tbVerbose, None, None,
-                      None, None, tsCustomUser,
-                      tsCustomPassword)
+        cfg.setConfig(tsBasePacteUrl, tsBaseURLService, tniTokenRenewDelay,
+                      tbVerbose, None, None, None, None, tsCustomUser, tsCustomPassword)
         return cfg
 
-    def __init__(self, tsBaseURLAuthen="", tsBaseURLPacteBE="",
-                 tsBaseURLPSCUser="", tsBaseURLService="",
-                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential:Credential=None):
+    def __init__(self, tsBaseURLAuthen="", tsBaseURLPacteBE="", tsBaseURLPSCUser="", tsBaseURLService="",
+                 tniTokenRenewDelay=-12, tpVerbose=True, toCredential: Credential = None):
 
         self.baseURLAuthen = tsBaseURLAuthen
         self.baseURLPacteBE = tsBaseURLPacteBE
@@ -141,59 +138,60 @@ class QuickConfig:
             self.credential[UserType.CustomUser] = \
                 Credential(tsCustomUser, tsCustomPassword)
 
-    def setCustomUser(self, tsUsername, tsPassword):
+    def setCustomUser(self, username: str, password: str):
         self.credential[UserType.CustomUser] = \
-            Credential(tsUsername, tsPassword)
+            Credential(username, password)
 
-    def getUserCredential(self, toType):
-        return self.credential.get(toType, None)
+    def getUserCredential(self, user_type: UserType):
+        return self.credential.get(user_type, None)
 
-    def setAuthenUrl(self, tsUrl):
-        self.baseURLAuthen = tsUrl
-        if not tsUrl.endswith("/"):
+    def setAuthenUrl(self, url: str):
+        self.baseURLAuthen = url
+        if not url.endswith("/"):
             self.baseURLAuthen += "/"
 
-    def setServiceUrl(self, tsServiceUrl):
-        self.baseURLService = tsServiceUrl
-        if not tsServiceUrl.endswith("/"):
+    def setServiceUrl(self, service_url: str):
+        self.baseURLService = service_url
+        if not service_url.endswith("/"):
             self.baseURLService += "/"
 
-    def getToken(self, toUserCredentials):
-        lsReturn = None
-        now = datetime.datetime.now()
-        time_limit = now - datetime.timedelta(hours=self.tokenRenewDelay)
-        if toUserCredentials.tokenCreation is None or (toUserCredentials.tokenCreation < time_limit):
-            toUserCredentials.setToken(None)
+    def getToken(self, user_credentials: Credential):
+        ret = ""
 
-            json_dict = {"username": toUserCredentials.username,
-                         "password": toUserCredentials.password,
+        time_limit = datetime.datetime.now() - datetime.timedelta(hours=self.tokenRenewDelay)
+        if user_credentials.tokenCreation is None or (user_credentials.tokenCreation < time_limit):
+            user_credentials.setToken(None)
+
+            json_dict = {"username": user_credentials.username,
+                         "password": user_credentials.password,
                          "jwtAudience": ["Pacte"]}
 
-            lsReturn = requests.post(self.baseURLAuthen + "psc-authentication-service/FormLogin/login",
-                                     json=json_dict)
+            ret = requests.post(self.baseURLAuthen + "psc-authentication-service/FormLogin/login",
+                                json=json_dict)
 
-        if lsReturn and len(lsReturn.text) > 0 and "unauthorized" not in lsReturn.text:
-            toUserCredentials.setToken(lsReturn.json().get("token"))
+        if ret and len(ret.text) > 0 and "unauthorized" not in ret.text:
+            user_credentials.setToken(ret.json().get("token"))
 
-        return toUserCredentials.token
+        return user_credentials.token
 
-    def getRequest(self, tsTargetEndpoint, toUsertype, toParams=None):
+    def getRequest(self, target_endpoint: str, user_type: UserType, toParams=None):
+        resp = None
 
         try:
-            validators.url(tsTargetEndpoint)
+            validators.url(target_endpoint)
         except validators.ValidationFailure as val:
             if (self.verbose):
                 print(val)
             return None
 
-        if toUsertype:
-            headers = {"Authorization": "Bearer " + str(self.getToken(self.credential.get(toUsertype))),
+        if user_type:
+            headers = {"Authorization": "Bearer " + str(self.getToken(self.credential.get(user_type))),
                        "AuthorizationAudience": "Pacte"}
         else:
             headers = None
 
         try:
-            resp = requests.get(tsTargetEndpoint, params=toParams, headers=headers)
+            resp = requests.get(target_endpoint, params=toParams, headers=headers)
             if self.verbose or (resp.status_code != 200 and resp.status_code != 204):
                 print("Response Status : " + str(resp.status_code))
 
@@ -202,24 +200,25 @@ class QuickConfig:
 
         return resp
 
-    def deleteRequest(self, tsTargetEndpoint, toUsertype, toParams=None):
+    def deleteRequest(self, target_endpoint: str, user_type: UserType, toParams=None):
+        resp = None
 
         try:
-            validators.url(tsTargetEndpoint)
+            validators.url(target_endpoint)
         except validators.ValidationFailure as val:
             if (self.verbose):
                 print(val)
             return None
 
-        if toUsertype:
+        if user_type:
             headers = {"Authorization": "Bearer " + self.getToken(
-                self.credential.get(toUsertype)),
+                self.credential.get(user_type)),
                        "AuthorizationAudience": "Pacte"}
         else:
             headers = None
 
         try:
-            resp = requests.delete(tsTargetEndpoint, params=toParams, headers=headers)
+            resp = requests.delete(target_endpoint, params=toParams, headers=headers)
             if self.verbose or (resp.status_code != 200 and resp.status_code != 204):
                 print("Response Status : " + str(resp.status_code))
 
@@ -228,18 +227,19 @@ class QuickConfig:
 
         return resp
 
-    def postRequest(self, tsTargetEndpoint, toUsertype, tdJson2Post, filedata=None):
+    def postRequest(self, target_endpoint: str, user_type: UserType, tdJson2Post, filedata=None):
+        resp = None
 
         try:
-            validators.url(tsTargetEndpoint)
+            validators.url(target_endpoint)
         except validators.ValidationFailure as val:
             if self.verbose:
                 print(val)
             return None
 
-        if toUsertype:
+        if user_type:
             headers = {"Authorization": "Bearer " + self.getToken(
-                self.credential.get(toUsertype)),
+                self.credential.get(user_type)),
                        "AuthorizationAudience": "Pacte"}
         else:
             headers = dict()
@@ -248,12 +248,11 @@ class QuickConfig:
             headers["Content-type"] = "application/json"
             headers["Accept"] = "application/json"
 
-        resp = None
         try:
             if filedata:
-                resp = requests.post(tsTargetEndpoint, headers=headers, data=tdJson2Post, files=filedata)
+                resp = requests.post(target_endpoint, headers=headers, data=tdJson2Post, files=filedata)
             else:
-                resp = requests.post(tsTargetEndpoint, json=tdJson2Post, headers=headers)
+                resp = requests.post(target_endpoint, json=tdJson2Post, headers=headers)
 
             if self.verbose or (resp.status_code != 200 and resp.status_code != 204):
                 print("Response Status : " + str(resp.status_code))
@@ -264,27 +263,27 @@ class QuickConfig:
 
         return resp
 
-    def putRequest(self, tsTargetEndpoint, toUsertype, tdJson2Put):
+    def putRequest(self, target_endpoint: str, user_type: UserType, tdJson2Put):
+        resp = None
 
         try:
-            validators.url(tsTargetEndpoint)
+            validators.url(target_endpoint)
         except validators.ValidationFailure as val:
-            if (self.verbose):
+            if self.verbose:
                 print(val)
             return None
 
-        if toUsertype:
+        if user_type:
             headers = {"Authorization": "Bearer " + self.getToken(
-                self.credential.get(toUsertype)),
+                self.credential.get(user_type)),
                        "AuthorizationAudience": "Pacte"}
         else:
             headers = dict()
 
         headers["Content-type"] = "application/json"
         headers["Accept"] = "application/json"
-
         try:
-            resp = requests.put(tsTargetEndpoint, json=tdJson2Put,
+            resp = requests.put(target_endpoint, json=tdJson2Put,
                                 headers=headers)
 
             if self.verbose or (

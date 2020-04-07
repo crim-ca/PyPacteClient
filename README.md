@@ -15,8 +15,8 @@ config = QuickConfig.configForUser( "https://patx-pacte.crim.ca", "<nom utilisat
 Vous pouvez alors instancier la classe nécessaire pour avoir accès aux fonctions (ici avec la classe `Corpus`) :
 
 ```
-corpus = Corpus(config)
-corpus.createCorpus("Nouveau corpus", ["fr_fr", "en_en"])
+corpus = CorpusManager(config)
+id = corpus.createCorpus("Nouveau corpus", ["fr_fr", "en_en"])
 ```
 
 ## Contributeurs et remerciements
@@ -45,8 +45,8 @@ config = QuickConfig.configForUser( "https://patx-pacte.crim.ca", "<nom utilisat
 You can then use the required class to access related functions (here with the `Corpus` class) :
 
 ```
-corpus = Corpus(config)
-corpus.createCorpus("New corpus", ["fr_fr", "en_en"]);
+corpus = CorpusManager(config)
+id = corpus.createCorpus("New corpus", ["fr_fr", "en_en"]);
 ```
 
 ## Credits and acknowledgements

@@ -5,9 +5,7 @@ import unittest
 from PacteUtil.QuickConfig import QuickConfig, UserType
 
 
-
 class testQuickConfig(unittest.TestCase):
-
     QuickConfig.config_file_path = "config.properties"
 
     def testEmptyURL(self):
@@ -41,6 +39,12 @@ class testQuickConfig(unittest.TestCase):
             pass
 
         self.assertIsNone(loCfg)
+
+    def testCredentials_user(self):
+        stored = QuickConfig.readConfiguration(QuickConfig.config_file_path)
+        cfg = QuickConfig.configForUser(stored["server"], stored["standarduser"], stored["standarduserpwd"], 1)
+        token = cfg.getToken(cfg.getUserCredential(UserType.CustomUser))
+        assert len(token) > 10
 
     def testCredentials(self):
         loCfg = QuickConfig.configForAdminAndUser("https://", "1", "2", "3", "4", "5", "6", False, 1, "")

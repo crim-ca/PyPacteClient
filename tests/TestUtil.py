@@ -9,25 +9,23 @@ from PacteClient.Admin import Admin
 from PacteClient.CorpusManager import CorpusManager
 from PacteUtil.QuickConfig import QuickConfig, UserType
 
-
 SMALL_CORPUS_SIZE = 2
 TESTCORPUS = "CorpusTest-999999998"
 TRANSCODEGROUP = "Transcode task bucket"
-
 
 
 def createSmallCorpus(corpusManager):
     corpusId = corpusManager.getCorpusId(TESTCORPUS)
     currentTime = datetime.datetime.now().isoformat()
     cptFail = 0
-    if corpusId :
+    if corpusId:
         corpusManager.deleteCorpus(corpusId)
 
-        #if corpusManager.getSize(corpusId) == SMALL_CORPUS_SIZE:
+        # if corpusManager.getSize(corpusId) == SMALL_CORPUS_SIZE:
         #    return corpusId
-       # else:
-        #    print("Deleting corrupted small sample corpus...")
-        #    corpusManager.deleteCorpus(corpusId)
+    # else:
+    #    print("Deleting corrupted small sample corpus...")
+    #    corpusManager.deleteCorpus(corpusId)
 
     # Create the new corpus
     corpusId = corpusManager.createCorpus(TESTCORPUS, ["fr-fr", "en-en"])
@@ -44,8 +42,9 @@ def createSmallCorpus(corpusManager):
             return None
 
         # Register schemas
-        try :
-            with Path(__file__).parent.parent.joinpath("PacteClient").joinpath("data").joinpath(CorpusManager.DOCMETA).open("r") as docmeta_file:
+        try:
+            with Path(__file__).parent.parent.joinpath("PacteClient").joinpath("data").joinpath(
+                    CorpusManager.DOCMETA).open("r") as docmeta_file:
                 transcodeSchema = json.load(docmeta_file)
         except IOError as e:
             print(e)
@@ -93,6 +92,7 @@ def createSmallCorpus(corpusManager):
 
     return corpusId
 
+
 def createTestingUser():
     QuickConfig.config_file_path = "config.properties"
     config = QuickConfig.fromConfigfile()
@@ -105,4 +105,3 @@ def createTestingUser():
         userId = admin.checkUser(user.username, user.password)
 
     return userId is not None
-
