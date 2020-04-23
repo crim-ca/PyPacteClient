@@ -69,6 +69,11 @@ class CorpusManager:
             return False
 
     def deleteCorpus(self, corpus_id: str):
+        """
+
+        :param corpus_id:
+        :return:
+        """
         if corpus_id is None or len(corpus_id) == 0:
             return False
 
@@ -80,19 +85,11 @@ class CorpusManager:
         return False
 
     def getSize(self, corpus_id: str):
-        #  String lsResponse = null;
-        #         lsResponse = poCfg.getRequest(poCfg.getPacteBackend() + "Corpora/corpus/" + tscorpus_id, USERTYPE.CustomUser,
-        #                 null);
-        #
-        #         if (lsResponse != null && !lsResponse.isEmpty()) {
-        #             JSONObject loJson = new JSONObject(lsResponse);
-        #             if (loJson.has("documentCount"))
-        #                 return loJson.getInt("documentCount");
-        #             else
-        #                 System.err.println("No document count returned : " + lsResponse);
-        #         }
-        #
-        #         return null;
+        """
+        Get the number of documents in a corpus
+        :param corpus_id:
+        :return:
+        """
         resp = self.config.getRequest(self.config.baseURLPacteBE + "Corpora/corpus/" + corpus_id,
                                       UserType.CustomUser)
 
@@ -178,7 +175,11 @@ class CorpusManager:
         return None
 
     def getGroups(self, corpus_id: str):
+        """
 
+        :param corpus_id:
+        :return:
+        """
         params = dict(includeSchemaJson=False)
         resp = self.config.getRequest(self.config.baseURLPacteBE + "RACSProxy/corpora/"
                                       + corpus_id + "/structure", UserType.CustomUser,
@@ -189,7 +190,10 @@ class CorpusManager:
         return None
 
     def getSchemas(self):
-
+        """
+        Get the list of all schemas in the user space.
+        :return:
+        """
         resp = self.config.getRequest(self.config.baseURLPacteBE +
                                       "Schemas/schemas", UserType.CustomUser)
 
@@ -198,7 +202,11 @@ class CorpusManager:
         return None
 
     def getSchema(self, schema_id: str):
+        """
 
+        :param schema_id:
+        :return:
+        """
         resp = self.config.getRequest(self.config.baseURLPacteBE + "Schemas/schema/" + schema_id,
                                       UserType.CustomUser)
 
@@ -208,13 +216,23 @@ class CorpusManager:
         return None
 
     def deleteSchema(self, schema_id: str):
+        """
+
+        :param schema_id:
+        :return:
+        """
         self.config.deleteRequest(self.config.baseURLPacteBE + "Schemas/schema/" + schema_id,
                                   UserType.CustomUser)
 
         return True
 
     def createBucket(self, corpus_id, bucketName):
+        """
 
+        :param corpus_id:
+        :param bucketName:
+        :return:
+        """
         j = dict(id=corpus_id, name=bucketName)
 
         resp = self.config.postRequest(self.config.baseURLPacteBE +
