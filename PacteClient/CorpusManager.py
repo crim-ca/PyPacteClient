@@ -370,7 +370,14 @@ class CorpusManager:
                                           doc["dateAdded"], doc["path"]))
         return docs
 
-    def getAnnotations(self, corpus_id, docId, schemaTypes):
+    def getAnnotations(self, corpus_id, docId: str, schemaTypes: str):
+        """
+
+        :param corpus_id:
+        :param docId:
+        :param schemaTypes: Must be in the following format, comma separated: groupId:SchemaName
+        :return:
+        """
         params = dict(schemaTypes=schemaTypes)
         return self.config.getRequest(self.config.baseURLPacteBE + "RACSProxy/annosearch/corpora/" +
                                       corpus_id + "/documents/" + docId, UserType.CustomUser, toParams=params).json()
@@ -485,7 +492,7 @@ class CorpusManager:
 
         return corpusNewId
 
-    def exportToDisk(self, corpus_id, outputDir, exportGroupIdList=None):
+    def exportToDisk(self, corpus_id: str, outputDir: str, exportGroupIdList=None):
 
         buckets = defaultdict(list)
         outputPath = Path(outputDir)
@@ -544,8 +551,7 @@ class CorpusManager:
 
                 for groupId, schemas in buckets.items():
                     if len(schemas) > 0:
-                        grpschema = dict()
-                        grpschema[groupId] = schemas
+                        grpschema = ",".join([groupId + ":" + schema for schema in schemas])
                         annotationList = self.getAnnotations(corpus_id, doc.id, grpschema)
                         with open(os.path.join(groupFolderPath, groupId, doc.id + ".json"), "w",
                                   encoding="UTF-8") as group_file:
