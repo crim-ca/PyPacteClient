@@ -258,7 +258,7 @@ class CorpusManager:
                     return schemaId
                 elif ((bucketId and len(bucketId) > 0)
                       or corpus_id and len(corpus_id) > 0) and len(corpus_list) > 0:
-                    corp = corpus_list[0]["corpus_id"]
+                    corp = corpus_list[0]["corpusId"]
                     buck = corpus_list[0]["bucketId"]
 
                     if len(corp) == 0 or (corp == corpus_id and (len(buck) == 0 or buck == bucketId)):

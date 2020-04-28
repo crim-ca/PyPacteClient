@@ -72,7 +72,7 @@ class TestCorpus(unittest.TestCase):
         # Deleting corpus
         print("Deleting corpus...")
         self.assertTrue(corpus_manager.deleteCorpus(corpus_id))
-        r = corpus_manager.getCorpusId(new_corpus_name)
+        r = corpus_manager.getcorpus_id(new_corpus_name)
         self.assertIsNone(r)
         print("Deleted !")
         print("Done !")

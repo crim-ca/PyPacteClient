@@ -15,7 +15,7 @@ TRANSCODEGROUP = "Transcode task bucket"
 
 
 def createSmallCorpus(corpusManager):
-    corpusId = corpusManager.getCorpusId(TESTCORPUS)
+    corpusId = corpusManager.getcorpus_id(TESTCORPUS)
     currentTime = datetime.datetime.now().isoformat()
     cptFail = 0
     if corpusId:

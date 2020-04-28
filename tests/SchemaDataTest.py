@@ -27,6 +27,7 @@ class TestSchemaData(unittest.TestCase):
         # Test the search modes
         schema.featureList["commentaire"] = FeatureDefinition("commentaire", "string", "Notes sur l'annotation",
                                                               "default", True, ["noop"], True)
+        schema.targetType = TARGET.document
         same_schema = SchemaData.schema_from_json(schema.to_string())
 
         self.assertTrue("commentaire" in schema.featureList)

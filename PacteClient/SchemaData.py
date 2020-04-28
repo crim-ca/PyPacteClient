@@ -13,7 +13,7 @@ class TARGET(Enum):
 class SchemaData(object):
     featureList = []  # Les attributs du schéma
     schemaType = ""
-    targetType = ""
+    targetType: TARGET = None
 
     def __init__(self, schema_target: TARGET, schema_type: str, features: dict):
         self.targetType = schema_target

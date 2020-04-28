@@ -34,6 +34,8 @@ class FeatureDefinition(object):
 
         if "default" in sch_type:
             sch_default = data["default"]
+        else:
+            sch_default = ""
 
         if "required" in data:
             requ = data["required"]
